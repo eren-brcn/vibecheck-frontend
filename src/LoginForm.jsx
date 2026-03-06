@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import api from './api';
+import api from './api'; 
 
 function LoginForm() {
   const [email, setEmail] = useState('');
@@ -9,17 +9,29 @@ function LoginForm() {
     e.preventDefault();
     try {
       const response = await api.post('/auth/login', { email, password });
+      
+      localStorage.setItem('authToken', response.data.token);
+      
       alert('Login successful!');
-      console.log(response.data);
+      console.log('Full API Response:', response.data);
     } catch (err) {
-      alert('Login failed: ' + err.response?.data?.message || 'Unknown error');
+      const errorMessage = err.response?.data?.message || 'Unknown error';
+      alert('Login failed: ' + errorMessage);
     }
   };
 
   return (
     <form onSubmit={handleLogin}>
-      <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
-      <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
+      <input 
+        type="email" 
+        placeholder="Email" 
+        onChange={(e) => setEmail(e.target.value)} 
+      />
+      <input 
+        type="password" 
+        placeholder="Password" 
+        onChange={(e) => setPassword(e.target.value)} 
+      />
       <button type="submit">Login</button>
     </form>
   );
