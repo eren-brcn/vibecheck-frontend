@@ -1,21 +1,24 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import api from './api';
-import LoginForm from './LoginForm';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import LoginForm from './components/LoginForm'; 
+import Dashboard from './pages/Dashboard';
+import PrivateRoute from './components/PrivateRoute';
+import './styles/App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
-
-
   return (
-      <div>
-        <h1>VibeCheck Login</h1>
-        <LoginForm />
-        </div>
+    <Routes>
+      <Route path="/" element={<Navigate to="/login" />} />
+      <Route path="/login" element={<LoginForm />} />
+      <Route 
+        path="/dashboard" 
+        element={
+          <PrivateRoute>
+            <Dashboard />
+          </PrivateRoute>
+        } 
+      />
+    </Routes>
   );
 }
-        
 
-export default App
+export default App;
