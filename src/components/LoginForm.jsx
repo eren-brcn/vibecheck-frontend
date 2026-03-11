@@ -1,27 +1,36 @@
 import { useState } from 'react';
-import api from '../api'; 
+import { useNavigate } from 'react-router-dom'; 
+import api from '../api';
 
 function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  
+  const navigate = useNavigate(); 
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const response = await api.post('/auth/login', { email, password });
       
-      localStorage.setItem('authToken', response.data.token);
+      // 3. Store the token exactly as 'authToken' PrivateRoute can find it
+      localStorage.setItem('authToken', response.data.token); 
       
       alert('Login successful!');
-      console.log('Full API Response:', response.data);
+      
+      // 4. Redirect the user to the Dashboard after success login
+      navigate('/dashboard'); 
+      
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Unknown error';
       alert('Login failed: ' + errorMessage);
     }
+    
   };
 
   return (
     <form onSubmit={handleLogin}>
+      <h2>Login</h2>
       <input 
         type="email" 
         placeholder="Email" 
