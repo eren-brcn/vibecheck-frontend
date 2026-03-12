@@ -1,20 +1,35 @@
 
 :root {
-  --primary: #646cff;
-  --bg-dark: #121212;
-  --card-bg: #1e1e1e;
-  --text-main: #e0e0e0;
-  --text-dim: #a0a000;
+  --primary: #ff2ea8;
+  --primary-strong: #d9128b;
+  --accent: #8b2dff;
+  --bg-main: #120015;
+  --bg-soft: #2a032f;
+  --panel: #3a0a43;
+  --panel-soft: #4a0e55;
+  --text-main: #fff1fb;
+  --text-dim: #d8a8cd;
+  --border: rgba(255, 76, 189, 0.35);
+  --glass-bg: rgba(56, 12, 64, 0.42);
+  --glass-bg-strong: rgba(56, 12, 64, 0.62);
+  --glass-blur: 14px;
 }
 
 body {
-  background-color: var(--bg-dark);
+  background:
+    radial-gradient(circle at 12% 6%, rgba(255, 46, 168, 0.28) 0%, transparent 34%),
+    radial-gradient(circle at 78% 0%, rgba(139, 45, 255, 0.36) 0%, transparent 40%),
+    radial-gradient(circle at 50% 48%, rgba(255, 78, 165, 0.1) 0%, transparent 46%),
+    radial-gradient(circle at 60% 100%, rgba(255, 92, 200, 0.18) 0%, transparent 42%),
+    linear-gradient(180deg, var(--bg-soft) 0%, var(--bg-main) 100%);
   color: var(--text-main);
   font-family: 'Inter', system-ui, sans-serif;
   margin: 0;
-  display: flex;
-  justify-content: center;
-  padding: 2rem;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
 }
 
 /* --- Container & Layout --- */
@@ -25,25 +40,25 @@ body {
 
 /* --- Group & Concert Cards --- */
 .item-card {
-  background: var(--card-bg);
+  background: var(--panel);
   padding: 1.5rem;
   margin: 1rem 0;
   border-radius: 12px;
-  border: 1px solid #333;
+  border: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .item-card:hover {
   transform: translateY(-2px);
-  border-color: var(--primary);
+  box-shadow: 0 10px 30px rgba(255, 46, 168, 0.35);
 }
 
 /* --- Buttons & Inputs --- */
 button {
-  background: var(--primary);
+  background: linear-gradient(90deg, var(--primary), var(--accent));
   color: white;
   border: none;
   padding: 0.6rem 1rem;
@@ -53,12 +68,15 @@ button {
   margin-left: 0.5rem;
 }
 
-button:hover { opacity: 0.9; }
+button:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
 
 input, select {
-  background: #2a2a2a;
-  color: white;
-  border: 1px solid #444;
+  background: var(--panel-soft);
+  color: var(--text-main);
+  border: 1px solid var(--border);
   padding: 0.6rem;
   border-radius: 6px;
 }

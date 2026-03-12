@@ -3,9 +3,12 @@ import LoginForm from './components/LoginForm';
 import SignupForm from './components/SignupForm';
 import Dashboard from './pages/Dashboard';
 import Discover from './pages/Discover';
+import GroupDetails from './pages/GroupDetails';
+import Concerts from './pages/Concerts';
 import Layout from './components/Layout/Layout';
 import PrivateRoute from './components/PrivateRoute';
 import Profile from './pages/Profile';
+import Chat from './pages/Chat';
 function App() {
   return (
     <Routes>
@@ -17,7 +20,12 @@ function App() {
       <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="discover" element={<Discover />} />
+        <Route path="concerts" element={<Concerts />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="group-details/:groupId" element={<GroupDetails />} />
+        <Route path="chat/:roomId" element={<Chat />} />
+        <Route path="chat/group/:groupId" element={<Chat />} />
+        <Route path="chat/dm/:friendId" element={<Chat />} />
         <Route index element={<Navigate to="dashboard" />} />
       </Route>
 

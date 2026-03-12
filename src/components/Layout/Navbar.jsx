@@ -8,6 +8,7 @@ export default function Navbar() {
         {/* Use the 'to' prop to point to your defined routes */}
         <Link to="/dashboard">Dashboard</Link>
         <Link to="/discover">Discover</Link>
+        <Link to="/concerts">Concerts</Link>
         <Link to="/profile">My Profile</Link>
         
         <button onClick={() => {
