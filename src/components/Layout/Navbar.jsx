@@ -3,11 +3,7 @@ import { Link } from 'react-router-dom';
 export default function Navbar() {
   return (
     <nav className="navbar">
-      <img
-        src="/logo.jpeg"
-        alt="VibeCheck"
-        style={{ height: 72, maxWidth: 240, objectFit: 'contain', borderRadius: 10 }}
-      />
+      <Link to="/dashboard" className="navbar-brand">VibeCheck</Link>
       <div className="nav-links">
         {/* Use the 'to' prop to point to your defined routes */}
         <Link to="/dashboard">Dashboard</Link>

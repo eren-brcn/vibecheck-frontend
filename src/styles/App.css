@@ -34,6 +34,23 @@
   font-weight: 800;
 }
 
+.navbar-brand {
+  color: var(--text-main);
+  text-decoration: none;
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: 0.9px;
+  font-style: italic;
+  background: linear-gradient(90deg, var(--text-main) 0%, var(--primary) 48%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow:
+    0 0 8px color-mix(in srgb, var(--primary) 45%, transparent),
+    0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
+  transform: skewX(-6deg) rotate(-1deg);
+}
+
 .nav-links {
   display: flex;
   align-items: center;
