@@ -6,7 +6,7 @@ export default function Navbar() {
       <img
         src="/logo.jpeg"
         alt="VibeCheck"
-        style={{ height: 52, maxWidth: 180, objectFit: 'contain', borderRadius: 10 }}
+        style={{ height: 72, maxWidth: 240, objectFit: 'contain', borderRadius: 10 }}
       />
       <div className="nav-links">
         {/* Use the 'to' prop to point to your defined routes */}
