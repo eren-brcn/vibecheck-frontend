@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import ChatWindow from '../components/ChatWindow';
-import api from '../api';
+import api, { SERVER_URL } from '../api';
 
-const SERVER_URL = (import.meta.env.VITE_SERVER_URL || 'http://localhost:5005').replace(/\/$/, '');
 
 // Connect once outside the component to prevent multiple connections
 const socket = io.connect(SERVER_URL);
