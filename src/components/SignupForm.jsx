@@ -46,6 +46,19 @@ function SignupForm() {
         gap: '0.9rem'
       }}
     >
+      <img
+        src="/logo.jpeg"
+        alt="VibeCheck logo"
+        style={{
+          width: 120,
+          height: 120,
+          objectFit: 'cover',
+          borderRadius: 14,
+          alignSelf: 'center',
+          marginBottom: '0.25rem',
+          border: '1px solid var(--border)'
+        }}
+      />
       <h2 style={{ marginBottom: '0.25rem', color: 'var(--text-main)' }}>Sign Up</h2>
       <input type="text" placeholder="Username" onChange={(e) => setUsername(e.target.value)} style={fieldStyle} />
       <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} style={fieldStyle} />

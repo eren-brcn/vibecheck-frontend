@@ -79,6 +79,19 @@ export default function Profile() {
     <Box sx={{ p: 3, maxWidth: 500, mx: 'auto' }}>
       <Card sx={{ background: 'var(--panel)', border: '1px solid var(--border)' }}>
         <CardContent sx={{ textAlign: 'center' }}>
+          <Box
+            component="img"
+            src="/logo.jpeg"
+            alt="VibeCheck logo"
+            sx={{
+              width: 120,
+              height: 120,
+              objectFit: 'cover',
+              borderRadius: 2,
+              mb: 2,
+              border: '1px solid var(--border)'
+            }}
+          />
           <Avatar src={user.imageUrl || undefined} sx={{ width: 100, height: 100, mx: 'auto', mb: 2 }}>
             {(user.username || user.name || '?').charAt(0).toUpperCase()}
           </Avatar>
