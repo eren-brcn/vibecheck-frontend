@@ -98,7 +98,7 @@ export default function Discover() {
                     justifyContent: 'center'
                   }}
                 >
-                  <Typography color="text.secondary">No Image Available</Typography>
+                  <Typography sx={{ color: 'var(--text-dim)' }}>No Image Available</Typography>
                 </Box>
               )}
 
@@ -130,15 +130,15 @@ export default function Discover() {
                     </Box>
                   ) : null;
                 })()}
-                <Typography variant="h5" gutterBottom>
+                <Typography variant="h5" gutterBottom sx={{ color: 'var(--text-main)', fontWeight: 700 }}>
                   {group.name}
                 </Typography>
                 
-                <Typography color="text.secondary" sx={{ mb: 2, textTransform: 'capitalize' }}>
+                <Typography sx={{ color: 'var(--text-dim)', mb: 2, textTransform: 'capitalize' }}>
                   Genre: {group.category}
                 </Typography>
                 
-                <Typography variant="body2" sx={{ mb: 2 }}>
+                <Typography variant="body2" sx={{ mb: 2, color: 'var(--text-main)' }}>
                   Members: {group.members ? group.members.length : 0}
                 </Typography>
 

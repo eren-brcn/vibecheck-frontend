@@ -49,7 +49,12 @@ export default function Sidebar() {
               }
             }}
           >
-            <ListItemText primary={group.name} secondary={group.category} />
+            <ListItemText
+              primary={group.name}
+              secondary={group.category}
+              primaryTypographyProps={{ sx: { color: 'var(--text-main)', fontWeight: 600 } }}
+              secondaryTypographyProps={{ sx: { color: 'var(--text-dim)', textTransform: 'capitalize' } }}
+            />
           </ListItemButton>
         ))}
       </List>

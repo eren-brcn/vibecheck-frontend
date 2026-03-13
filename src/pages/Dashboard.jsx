@@ -212,11 +212,11 @@ export default function Dashboard() {
                     <Button size="small" variant="outlined" onClick={() => handleDelete(group._id)} sx={dangerActionSx}>Delete Group</Button>
                   </Box>
                 )}
-                <Typography variant="h6">{group.name}</Typography>
-                <Typography variant="body2" color="text.secondary">Genre: {group.category}</Typography>
+                <Typography variant="h6" sx={{ color: 'var(--text-main)', fontWeight: 700 }}>{group.name}</Typography>
+                <Typography variant="body2" sx={{ color: 'var(--text-dim)' }}>Genre: {group.category}</Typography>
                 
                 <Divider sx={{ my: 2 }} />
-                <Typography variant="subtitle2">Members:</Typography>
+                <Typography variant="subtitle2" sx={{ color: 'var(--text-main)' }}>Members:</Typography>
                 
                 
                 {group.members && group.members.map((member) => {
@@ -230,7 +230,7 @@ export default function Dashboard() {
                         <Avatar src={memberImage || undefined} sx={{ width: 24, height: 24 }}>
                           {memberName[0]?.toUpperCase()}
                         </Avatar>
-                        <Typography variant="body2">{memberName}</Typography>
+                        <Typography variant="body2" sx={{ color: 'var(--text-main)' }}>{memberName}</Typography>
                       </Box>
                       {organiserId === currentUserId && memberId !== currentUserId && (
                         <Button size="small" variant="outlined" onClick={() => handleKick(group._id, memberId)} sx={dangerActionSx}>Kick</Button>
