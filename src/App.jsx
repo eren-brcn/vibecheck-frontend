@@ -9,6 +9,7 @@ import Layout from './components/Layout/Layout';
 import PrivateRoute from './components/PrivateRoute';
 import Profile from './pages/Profile';
 import Chat from './pages/Chat';
+import UserProfile from './pages/UserProfile';
 function App() {
   return (
     <Routes>
@@ -22,6 +23,7 @@ function App() {
         <Route path="discover" element={<Discover />} />
         <Route path="concerts" element={<Concerts />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="users/:userId" element={<UserProfile />} />
         <Route path="group-details/:groupId" element={<GroupDetails />} />
         <Route path="chat/:roomId" element={<Chat />} />
         <Route path="chat/group/:groupId" element={<Chat />} />

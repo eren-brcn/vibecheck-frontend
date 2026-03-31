@@ -3,14 +3,14 @@ import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
 
-export default function Layout({ children }) {
+export default function Layout() {
   return (
     <div className="layout-wrapper">
       <Navbar className="navbar" />
       <Sidebar className="sidebar" />
       
       <main className="content">
-        {children ?? <Outlet />}
+        <Outlet />
       </main>
       
       <Footer className="footer" />

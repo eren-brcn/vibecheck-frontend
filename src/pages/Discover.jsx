@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, Typography, Button, Grid, Container, Box } from '@mui/material';
+import { Card, CardContent, Typography, Button, Grid, Container, Box, TextField, Alert, Stack } from '@mui/material';
 import api from "../api";
 
 export default function Discover() {
@@ -8,6 +8,10 @@ export default function Discover() {
   const [joinedIds, setJoinedIds] = useState([]);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [inviteCode, setInviteCode] = useState('');
+  const [joiningInvite, setJoiningInvite] = useState(false);
+  const [inviteMessage, setInviteMessage] = useState('');
+  const [inviteError, setInviteError] = useState('');
 
   const fetchGroups = () => {
     api.get("/groups")
@@ -50,6 +54,32 @@ export default function Discover() {
       });
   };
 
+  const handleJoinByInvite = () => {
+    const normalizedCode = inviteCode.trim().toUpperCase();
+    if (!normalizedCode) {
+      setInviteError('Enter an invite code first.');
+      setInviteMessage('');
+      return;
+    }
+
+    setJoiningInvite(true);
+    setInviteError('');
+    setInviteMessage('');
+
+    api.put('/groups/join-by-invite', { inviteCode: normalizedCode })
+      .then(() => {
+        setInviteMessage('Joined private group successfully. Check your dashboard.');
+        setInviteCode('');
+        window.dispatchEvent(new Event('groups:updated'));
+      })
+      .catch((err) => {
+        setInviteError(err.response?.data?.message || 'Could not join with invite code.');
+      })
+      .finally(() => {
+        setJoiningInvite(false);
+      });
+  };
+
   return (
     <Container maxWidth={false} sx={{ mt: 0, px: 0, position: 'relative', overflow: 'hidden', pb: 4, minHeight: 'calc(100vh - 120px)' }}>
       <Box
@@ -69,6 +99,36 @@ export default function Discover() {
       <Typography variant="h4" sx={{ mb: 4, pt: 3, px: { xs: 2, md: 4 }, fontWeight: 'bold', position: 'relative', zIndex: 1 }}>
         Discover New Groups
       </Typography>
+
+      <Box sx={{ px: { xs: 2, md: 4 }, mb: 3, position: 'relative', zIndex: 1 }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+          <TextField
+            label="Private group invite code"
+            value={inviteCode}
+            onChange={(e) => setInviteCode(e.target.value)}
+            placeholder="e.g. A1B2C3D4"
+            sx={{ minWidth: { sm: 320 } }}
+          />
+          <Button
+            variant="contained"
+            onClick={handleJoinByInvite}
+            disabled={joiningInvite}
+            sx={{
+              background: 'linear-gradient(90deg, var(--primary), var(--accent))',
+              color: '#fff',
+              fontWeight: 700,
+              '&:hover': {
+                background: 'linear-gradient(90deg, var(--primary-strong), var(--accent))',
+                boxShadow: '0 0 0 1px rgba(255, 79, 216, 0.35), 0 10px 24px rgba(122, 46, 255, 0.35)'
+              }
+            }}
+          >
+            {joiningInvite ? 'Joining...' : 'Join Private Group'}
+          </Button>
+        </Stack>
+        {inviteMessage && <Alert sx={{ mt: 1.5 }} severity="success">{inviteMessage}</Alert>}
+        {inviteError && <Alert sx={{ mt: 1.5 }} severity="error">{inviteError}</Alert>}
+      </Box>
 
       <Grid container spacing={3} sx={{ position: 'relative', zIndex: 1, px: { xs: 2, md: 4 } }}>
         {allGroups.map((group) => (
@@ -136,6 +196,9 @@ export default function Discover() {
                 
                 <Typography sx={{ color: 'var(--text-dim)', mb: 2, textTransform: 'capitalize' }}>
                   Genre: {group.category}
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'var(--text-dim)', mb: 1 }}>
+                  Type: Public
                 </Typography>
                 
                 <Typography variant="body2" sx={{ mb: 2, color: 'var(--text-main)' }}>

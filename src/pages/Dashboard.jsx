@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   Typography, Button, Grid, Container, Card, CardContent, Box, Avatar,
   Dialog, DialogTitle, DialogContent, TextField, MenuItem, 
-  DialogActions, FormControl, InputLabel, Select, Divider 
+  DialogActions, FormControl, InputLabel, Select, Divider, FormControlLabel, Switch
 } from '@mui/material';
 import api from "../api";
 
@@ -39,6 +39,7 @@ export default function Dashboard() {
   const [open, setOpen] = useState(false);
   const [newName, setNewName] = useState('');
   const [newCategory, setNewCategory] = useState('rock');
+  const [newIsPrivate, setNewIsPrivate] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
@@ -118,8 +119,17 @@ export default function Dashboard() {
   };
 
   const handleCreateGroup = async () => {
-    await api.post('/groups', { name: newName, category: newCategory, imageUrl });
+    await api.post('/groups', {
+      name: newName,
+      category: newCategory,
+      imageUrl,
+      isPrivate: newIsPrivate
+    });
     setOpen(false);
+    setNewName('');
+    setNewCategory('rock');
+    setImageUrl('');
+    setNewIsPrivate(false);
     window.dispatchEvent(new Event("groups:updated"));
     fetchMyGroups();
   };
@@ -214,6 +224,19 @@ export default function Dashboard() {
                 )}
                 <Typography variant="h6" sx={{ color: 'var(--text-main)', fontWeight: 700 }}>{group.name}</Typography>
                 <Typography variant="body2" sx={{ color: 'var(--text-dim)' }}>Genre: {group.category}</Typography>
+                <Typography variant="body2" sx={{ color: 'var(--text-dim)' }}>
+                  Type: {group.isPrivate ? 'Private (Invite only)' : 'Public'}
+                </Typography>
+                {group.isPrivate && organiserId === currentUserId && group.inviteCode && (
+                  <Box sx={{ mt: 1, p: 1, borderRadius: 1, border: '1px dashed var(--border)' }}>
+                    <Typography variant="caption" sx={{ color: 'var(--text-dim)', display: 'block' }}>
+                      Invite Code
+                    </Typography>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, letterSpacing: 1 }}>
+                      {group.inviteCode}
+                    </Typography>
+                  </Box>
+                )}
                 
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="subtitle2" sx={{ color: 'var(--text-main)' }}>Members:</Typography>
@@ -288,6 +311,15 @@ export default function Dashboard() {
               <MenuItem value="other">Other</MenuItem>
             </Select>
           </FormControl>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={newIsPrivate}
+                onChange={(e) => setNewIsPrivate(e.target.checked)}
+              />
+            }
+            label="Private group (invite only)"
+          />
           <input type="file" onChange={handleFileUpload} />
         </DialogContent>
         <DialogActions>
