@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import api from '../api';
 
 function SignupForm() {
@@ -19,8 +20,8 @@ function SignupForm() {
     e.preventDefault();
     try {
       await api.post('/auth/signup', { username, email, password });
-      alert('Signup successful! Redirecting to login...');
-      window.location.href = '/login'; 
+      toast.success('Signup successful! Redirecting to login...');
+      setTimeout(() => { window.location.href = '/login'; }, 1500); 
 } catch (err) {
   console.error("DEBUG ERROR:", err); // This will stay visible in the Console tab
   if (err.response) {

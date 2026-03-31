@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, Typography, Button, Grid, Container, Box, TextField, Alert, Stack } from '@mui/material';
+import toast from 'react-hot-toast';
 import api from "../api";
 
 export default function Discover() {
@@ -34,7 +35,7 @@ export default function Discover() {
         window.dispatchEvent(new Event('groups:updated'));
         fetchGroups();
       })
-      .catch((err) => alert(err.response?.data?.message || 'Could not delete group.'))
+      .catch((err) => toast.error(err.response?.data?.message || 'Could not delete group.'))
       .finally(() => setDeletingId(null));
   };
 
@@ -50,7 +51,7 @@ export default function Discover() {
       .catch((err) => {
         console.error("Error joining group:", err);
         setJoiningId(null);
-        alert(err.response?.data?.message || "Could not join the group. Please try again.");
+        toast.error(err.response?.data?.message || "Could not join the group. Please try again.");
       });
   };
 

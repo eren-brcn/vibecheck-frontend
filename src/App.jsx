@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import LoginForm from './components/LoginForm';
 import SignupForm from './components/SignupForm';
 import Dashboard from './pages/Dashboard';
@@ -12,6 +13,8 @@ import Chat from './pages/Chat';
 import UserProfile from './pages/UserProfile';
 function App() {
   return (
+    <>
+    <Toaster position="top-center" toastOptions={{ style: { background: '#1f0425', color: '#fff', border: '1px solid rgba(255,79,216,0.3)' } }} />
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={<LoginForm />} />
@@ -34,6 +37,7 @@ function App() {
       {/* Redirect unknown routes to login */}
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
+    </>
   );
 }
 

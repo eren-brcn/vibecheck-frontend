@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { 
   Typography, Button, Grid, Container, Card, CardContent, Box, Avatar,
   Dialog, DialogTitle, DialogContent, TextField, MenuItem, 
@@ -7,6 +9,7 @@ import {
 import api from "../api";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [currentUserId, setCurrentUserId] = useState(null);
 
   // Fetch the current user's ID from the API so we don't rely on JWT key names
@@ -154,7 +157,7 @@ export default function Dashboard() {
       fetchMyGroups();
     } catch (err) {
       console.error('Error deleting group:', err);
-      window.alert('Could not delete the group. Please try again.');
+      toast.error(err.response?.data?.message || 'Could not delete the group.');
     }
   };
 
@@ -166,7 +169,7 @@ export default function Dashboard() {
       fetchMyGroups();
     } catch (err) {
       console.error('Error deleting all groups:', err);
-      window.alert('Could not delete all groups. Please try again.');
+      toast.error('Could not delete all groups. Please try again.');
     }
   };
 
@@ -249,11 +252,14 @@ export default function Dashboard() {
                   const memberImage = member && typeof member === 'object' ? member.imageUrl : null;
                   return (
                     <Box key={memberId} sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: memberId !== currentUserId ? 'pointer' : 'default' }}
+                        onClick={() => memberId !== currentUserId && navigate(`/users/${memberId}`)}
+                      >
                         <Avatar src={memberImage || undefined} sx={{ width: 24, height: 24 }}>
                           {memberName[0]?.toUpperCase()}
                         </Avatar>
-                        <Typography variant="body2" sx={{ color: 'var(--text-main)' }}>{memberName}</Typography>
+                        <Typography variant="body2" sx={{ color: 'var(--text-main)', textDecoration: memberId !== currentUserId ? 'underline' : 'none' }}>{memberName}</Typography>
                       </Box>
                       {organiserId === currentUserId && memberId !== currentUserId && (
                         <Button size="small" variant="outlined" onClick={() => handleKick(group._id, memberId)} sx={dangerActionSx}>Kick</Button>

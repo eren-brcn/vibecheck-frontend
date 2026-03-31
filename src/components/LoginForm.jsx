@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom'; 
+import toast from 'react-hot-toast';
 import api from '../api';
 
 function LoginForm() {
@@ -25,14 +26,14 @@ function LoginForm() {
       // 3. Store the token exactly as 'authToken' PrivateRoute can find it
       localStorage.setItem('authToken', response.data.token); 
       
-      alert('Login successful!');
+      toast.success('Login successful!');
       
       // 4. Redirect the user to the Dashboard after success login
       navigate('/dashboard'); 
       
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Unknown error';
-      alert('Login failed: ' + errorMessage);
+      toast.error('Login failed: ' + errorMessage);
     }
     
   };

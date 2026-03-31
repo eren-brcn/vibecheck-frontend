@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import {
   Container, Typography, Box, Avatar, List, ListItem,
   ListItemAvatar, ListItemText, Divider, Button, CircularProgress
@@ -71,7 +72,7 @@ export default function GroupDetails() {
       window.dispatchEvent(new Event('groups:updated'));
       await fetchGroup();
     } catch (err) {
-      alert(err.response?.data?.message || 'Could not kick member.');
+      toast.error(err.response?.data?.message || 'Could not kick member.');
     }
   };
 
@@ -113,13 +114,29 @@ export default function GroupDetails() {
           const organiserId = getOrganiserId(group.organiser);
           const isOrganiser = organiserId && organiserId === String(id);
           const canKick = organiserId && currentUserId && organiserId === currentUserId && String(id) !== currentUserId;
+          const isCurrentUser = currentUserId && String(id) === currentUserId;
           return (
             <ListItem key={id} sx={{ px: 0 }}>
               <ListItemAvatar>
-                <Avatar src={memberImage || undefined}>{name[0]?.toUpperCase()}</Avatar>
+                <Avatar
+                  src={memberImage || undefined}
+                  sx={{ cursor: isCurrentUser ? 'default' : 'pointer' }}
+                  onClick={() => !isCurrentUser && navigate(`/users/${id}`)}
+                >
+                  {name[0]?.toUpperCase()}
+                </Avatar>
               </ListItemAvatar>
               <ListItemText
-                primary={name}
+                primary={
+                  isCurrentUser ? name : (
+                    <span
+                      style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                      onClick={() => navigate(`/users/${id}`)}
+                    >
+                      {name}
+                    </span>
+                  )
+                }
                 secondary={isOrganiser ? 'Organiser' : 'Member'}
               />
               <Box sx={{ display: 'flex', gap: 1 }}>
