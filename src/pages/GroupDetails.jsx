@@ -13,6 +13,8 @@ export default function GroupDetails() {
   const [group, setGroup] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [leaving, setLeaving] = useState(false);
+  const [moderationBusyId, setModerationBusyId] = useState(null);
 
   const primaryActionSx = {
     background: 'linear-gradient(90deg, var(--primary), var(--accent))',
@@ -76,8 +78,54 @@ export default function GroupDetails() {
     }
   };
 
+  const handleLeaveGroup = async () => {
+    if (!groupId) return;
+    if (!window.confirm('Leave this group?')) return;
+
+    try {
+      setLeaving(true);
+      await api.put(`/groups/leave/${groupId}`);
+      window.dispatchEvent(new Event('groups:updated'));
+      navigate('/dashboard');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not leave group.');
+    } finally {
+      setLeaving(false);
+    }
+  };
+
+  const handlePromoteModerator = async (memberId) => {
+    try {
+      setModerationBusyId(`promote-${memberId}`);
+      await api.put(`/groups/moderators/${groupId}/${memberId}/promote`);
+      await fetchGroup();
+      toast.success('Member promoted to moderator');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not promote moderator.');
+    } finally {
+      setModerationBusyId(null);
+    }
+  };
+
+  const handleDemoteModerator = async (memberId) => {
+    try {
+      setModerationBusyId(`demote-${memberId}`);
+      await api.put(`/groups/moderators/${groupId}/${memberId}/demote`);
+      await fetchGroup();
+      toast.success('Moderator demoted');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not demote moderator.');
+    } finally {
+      setModerationBusyId(null);
+    }
+  };
+
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}><CircularProgress /></Box>;
   if (!group) return <Container sx={{ mt: 4 }}><Typography>Group not found.</Typography></Container>;
+
+  const organiserId = getOrganiserId(group.organiser);
+  const isOrganiser = organiserId && currentUserId && organiserId === currentUserId;
+  const isMember = (group.members || []).some((member) => String(member._id || member) === String(currentUserId));
 
   return (
     <Container maxWidth="sm" sx={{ mt: 4 }}>
@@ -101,6 +149,17 @@ export default function GroupDetails() {
         Open Group Chat
       </Button>
 
+      {!isOrganiser && isMember && (
+        <Button
+          variant="outlined"
+          onClick={handleLeaveGroup}
+          disabled={leaving}
+          sx={{ mb: 3, ml: 1, ...dangerActionSx }}
+        >
+          {leaving ? 'Leaving...' : 'Leave Group'}
+        </Button>
+      )}
+
       <Divider sx={{ mb: 2 }} />
       <Typography variant="h6" sx={{ mb: 1 }}>
         Members ({group.members?.length || 0})
@@ -112,8 +171,15 @@ export default function GroupDetails() {
           const name = member.username || 'Unknown User';
           const memberImage = member && typeof member === 'object' ? member.imageUrl : null;
           const organiserId = getOrganiserId(group.organiser);
+          const isModerator = (group.moderators || []).some((mod) => String(mod._id || mod) === String(id));
           const isOrganiser = organiserId && organiserId === String(id);
-          const canKick = organiserId && currentUserId && organiserId === currentUserId && String(id) !== currentUserId;
+          const amOrganiser = organiserId && currentUserId && organiserId === currentUserId;
+          const amModerator = (group.moderators || []).some((mod) => String(mod._id || mod) === String(currentUserId));
+          const canKick = Boolean(
+            String(id) !== String(currentUserId) &&
+            !isOrganiser &&
+            (amOrganiser || (amModerator && !isModerator))
+          );
           const isCurrentUser = currentUserId && String(id) === currentUserId;
           return (
             <ListItem key={id} sx={{ px: 0 }}>
@@ -137,7 +203,7 @@ export default function GroupDetails() {
                     </span>
                   )
                 }
-                secondary={isOrganiser ? 'Organiser' : 'Member'}
+                secondary={isOrganiser ? 'Organiser' : (isModerator ? 'Moderator' : 'Member')}
               />
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button
@@ -148,6 +214,28 @@ export default function GroupDetails() {
                 >
                   Message
                 </Button>
+                {amOrganiser && !isOrganiser && !isModerator && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    disabled={moderationBusyId === `promote-${id}`}
+                    onClick={() => handlePromoteModerator(id)}
+                    sx={neutralActionSx}
+                  >
+                    {moderationBusyId === `promote-${id}` ? 'Promoting...' : 'Promote'}
+                  </Button>
+                )}
+                {amOrganiser && !isOrganiser && isModerator && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    disabled={moderationBusyId === `demote-${id}`}
+                    onClick={() => handleDemoteModerator(id)}
+                    sx={neutralActionSx}
+                  >
+                    {moderationBusyId === `demote-${id}` ? 'Demoting...' : 'Demote'}
+                  </Button>
+                )}
                 {canKick && (
                   <Button
                     variant="outlined"

@@ -4,10 +4,16 @@ const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:5005';
 
 let socket = null;
 
+const getAuthToken = () => localStorage.getItem('authToken') || null;
+
 export const initSocket = () => {
   if (socket) return socket;
 
   socket = io(BACKEND_URL, {
+    auth: (cb) => cb({ token: getAuthToken() }),
+    extraHeaders: {
+      Authorization: `Bearer ${getAuthToken() || ''}`
+    },
     withCredentials: true,
     reconnection: true,
     reconnectionDelay: 1000,
@@ -37,10 +43,18 @@ export const getSocket = () => {
   return socket;
 };
 
-export const joinNotifications = (userId) => {
-  if (socket && socket.connected) {
-    socket.emit('join-notifications', userId);
+export const joinNotifications = () => {
+  if (!socket) {
+    return;
   }
+
+  const emitJoin = () => socket.emit('join-notifications');
+  if (socket.connected) {
+    emitJoin();
+    return;
+  }
+
+  socket.once('connect', emitJoin);
 };
 
 export const disconnectSocket = () => {

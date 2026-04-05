@@ -17,6 +17,7 @@ import {
   MenuItem
 } from '@mui/material';
 import api from '../api';
+import { maskEmail } from '../utils/maskEmail';
 
 export default function UserProfile() {
   const { userId } = useParams();
@@ -25,6 +26,7 @@ export default function UserProfile() {
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [inviting, setInviting] = useState(false);
+  const [blocking, setBlocking] = useState(false);
   const [privateGroups, setPrivateGroups] = useState([]);
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [message, setMessage] = useState('');
@@ -114,6 +116,44 @@ export default function UserProfile() {
     }
   };
 
+  const handleBlockUser = async () => {
+    if (!user) return;
+    if (!window.confirm('Block this user? They will be removed from your friends list and hidden from search.')) return;
+
+    try {
+      setBlocking(true);
+      setMessage('');
+      await api.post(`/users/${user._id}/block`);
+      setUser((prev) => ({ ...prev, isBlocked: true }));
+      setMessageType('success');
+      setMessage('User blocked.');
+    } catch (error) {
+      setMessageType('error');
+      setMessage(error.response?.data?.message || 'Could not block user.');
+    } finally {
+      setBlocking(false);
+    }
+  };
+
+  const handleUnblockUser = async () => {
+    if (!user) return;
+    if (!window.confirm('Unblock this user?')) return;
+
+    try {
+      setBlocking(true);
+      setMessage('');
+      await api.post(`/users/${user._id}/unblock`);
+      setUser((prev) => ({ ...prev, isBlocked: false }));
+      setMessageType('success');
+      setMessage('User unblocked.');
+    } catch (error) {
+      setMessageType('error');
+      setMessage(error.response?.data?.message || 'Could not unblock user.');
+    } finally {
+      setBlocking(false);
+    }
+  };
+
   const getFriendButtonLabel = () => {
     if (!user) return 'Add Friend';
     if (user.isFriend || user.friendRequestStatus === 'friends') return 'Already Friends';
@@ -153,7 +193,7 @@ export default function UserProfile() {
               {(user.username || '?').charAt(0).toUpperCase()}
             </Avatar>
             <Typography variant="h4">{user.username || 'User'}</Typography>
-            <Typography variant="body1" color="text.secondary">{user.email || 'No email'}</Typography>
+            <Typography variant="body1" color="text.secondary">{maskEmail(user.email) || 'No email'}</Typography>
 
             {user.instagramUrl ? (
               <Link href={user.instagramUrl} target="_blank" rel="noreferrer" underline="hover">Instagram</Link>
@@ -175,6 +215,26 @@ export default function UserProfile() {
             >
               {adding ? 'Sending...' : getFriendButtonLabel()}
             </Button>
+
+            {user.isBlocked ? (
+              <Button
+                variant="outlined"
+                disabled={blocking}
+                onClick={handleUnblockUser}
+                sx={{ color: '#22c55e', borderColor: '#22c55e' }}
+              >
+                {blocking ? 'Unblocking...' : 'Unblock User'}
+              </Button>
+            ) : (
+              <Button
+                variant="outlined"
+                disabled={blocking}
+                onClick={handleBlockUser}
+                sx={{ color: '#ffb3cc', borderColor: 'rgba(255, 79, 216, 0.45)' }}
+              >
+                {blocking ? 'Blocking...' : 'Block User'}
+              </Button>
+            )}
 
             {privateGroups.length > 0 && (
               <Stack spacing={1.2} sx={{ width: '100%', mt: 1 }}>

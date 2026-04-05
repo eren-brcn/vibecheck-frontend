@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Container, Typography, Box, TextField, MenuItem,
   Button, Card, CardContent, Grid, CircularProgress
@@ -16,9 +16,19 @@ const COUNTRIES = [
 export default function Concerts() {
   const [country, setCountry] = useState('TR');
   const [city, setCity] = useState('');
+  const [keyword, setKeyword] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [concerts, setConcerts] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+
+  useEffect(() => {
+    api.get('/users/concert-wishlist')
+      .then((res) => setWishlist(res.data || []))
+      .catch(() => setWishlist([]));
+  }, []);
 
   const searchFieldSx = {
     minWidth: 200,
@@ -54,7 +64,12 @@ export default function Concerts() {
     setLoading(true);
     setSearched(true);
     try {
-      const res = await api.get(`/concerts/search?country=${country}&city=${city}`);
+      const params = new URLSearchParams({ country });
+      if (city.trim()) params.set('city', city.trim());
+      if (keyword.trim()) params.set('keyword', keyword.trim());
+      if (startDate) params.set('startDate', startDate);
+      if (endDate) params.set('endDate', endDate);
+      const res = await api.get(`/concerts/search?${params.toString()}`);
       setConcerts(res.data);
     } catch (err) {
       console.error('Concert search error:', err);
@@ -62,6 +77,29 @@ export default function Concerts() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const isWishlisted = (concertId) => wishlist.some((item) => item.concertId === concertId);
+
+  const toggleWishlist = (concert) => {
+    if (isWishlisted(concert.id)) {
+      api.delete(`/users/concert-wishlist/${concert.id}`)
+        .then((res) => setWishlist(res.data || []))
+        .catch((err) => console.error('Wishlist remove error:', err));
+      return;
+    }
+
+    api.post('/users/concert-wishlist', {
+      concertId: concert.id,
+      name: concert.name,
+      image: concert.images?.[0]?.url || null,
+      date: concert.dates?.start?.localDate || null,
+      city: concert._embedded?.venues?.[0]?.city?.name || '',
+      venue: concert._embedded?.venues?.[0]?.name || '',
+      url: concert.url || ''
+    })
+      .then((res) => setWishlist(res.data || []))
+      .catch((err) => console.error('Wishlist save error:', err));
   };
 
   return (
@@ -104,10 +142,61 @@ export default function Concerts() {
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           sx={searchFieldSx}
         />
+        <TextField
+          label="Artist or keyword"
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          sx={searchFieldSx}
+        />
+        <TextField
+          label="Start date"
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          sx={searchFieldSx}
+          InputLabelProps={{ shrink: true }}
+        />
+        <TextField
+          label="End date"
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          sx={searchFieldSx}
+          InputLabelProps={{ shrink: true }}
+        />
         <Button variant="contained" onClick={handleSearch} disabled={loading}>
           {loading ? 'Searching...' : 'Search'}
         </Button>
       </Box>
+
+      {wishlist.length > 0 && (
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>Saved Concerts</Typography>
+          <Grid container spacing={2}>
+            {wishlist.slice(0, 6).map((item) => (
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.concertId}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{item.name}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {item.date || 'Date TBD'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {item.venue}{item.city ? `, ${item.city}` : ''}
+                    </Typography>
+                    {item.url && (
+                      <Button size="small" href={item.url} target="_blank" rel="noopener noreferrer" sx={{ mt: 1 }}>
+                        Open Tickets
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
 
       {loading && <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}><CircularProgress /></Box>}
 
@@ -138,6 +227,14 @@ export default function Concerts() {
                     Get Tickets →
                   </Button>
                 )}
+                <Button
+                  size="small"
+                  variant="outlined"
+                  sx={{ mt: 1, ml: 1 }}
+                  onClick={() => toggleWishlist(concert)}
+                >
+                  {isWishlisted(concert.id) ? 'Saved' : 'Save'}
+                </Button>
               </CardContent>
             </Card>
           </Grid>

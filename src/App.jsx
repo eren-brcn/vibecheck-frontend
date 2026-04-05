@@ -11,6 +11,8 @@ import PrivateRoute from './components/PrivateRoute';
 import Profile from './pages/Profile';
 import Chat from './pages/Chat';
 import UserProfile from './pages/UserProfile';
+import Settings from './pages/Settings';
+import NotificationHistory from './pages/NotificationHistory';
 function App() {
   return (
     <>
@@ -26,6 +28,8 @@ function App() {
         <Route path="discover" element={<Discover />} />
         <Route path="concerts" element={<Concerts />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="settings" element={<Settings />} />
+        <Route path="notifications" element={<NotificationHistory />} />
         <Route path="users/:userId" element={<UserProfile />} />
         <Route path="group-details/:groupId" element={<GroupDetails />} />
         <Route path="chat/:roomId" element={<Chat />} />

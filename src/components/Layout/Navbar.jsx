@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import toast from 'react-hot-toast';
 import api from '../../api';
 import { initSocket, joinNotifications } from '../../socket';
 
@@ -13,11 +14,27 @@ export default function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState({ count: 0, friendRequests: [], groupInvites: [] });
   const [processingAction, setProcessingAction] = useState('');
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+  const [genreFilter, setGenreFilter] = useState('');
 
   const searchWrapRef = useRef(null);
   const notificationsWrapRef = useRef(null);
 
   const trimmedQuery = useMemo(() => query.trim(), [query]);
+
+  const logNotification = (entry) => {
+    try {
+      const existing = JSON.parse(localStorage.getItem('notificationHistory') || '[]');
+      const next = [{
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        createdAt: new Date().toISOString(),
+        ...entry
+      }, ...existing].slice(0, 100);
+      localStorage.setItem('notificationHistory', JSON.stringify(next));
+    } catch {
+      // Ignore local history write errors.
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -28,9 +45,19 @@ export default function Navbar() {
     }
   };
 
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await api.get('/messages/unread-count');
+      setUnreadMessageCount(res.data?.unreadCount || 0);
+    } catch {
+      setUnreadMessageCount(0);
+    }
+  };
+
   useEffect(() => {
-    // Fetch initial notifications
+    // Fetch initial notifications and unread count
     fetchNotifications();
+    fetchUnreadCount();
 
     // Initialize socket connection
     const socket = initSocket();
@@ -42,7 +69,7 @@ export default function Navbar() {
         const decoded = JSON.parse(atob(token.split('.')[1]));
         const userId = decoded?._id || decoded?.id;
         if (userId) {
-          joinNotifications(userId);
+          joinNotifications();
         }
       } catch (err) {
         console.error('Error decoding token:', err);
@@ -50,10 +77,23 @@ export default function Navbar() {
     }
 
     // Listen for real-time notification events
-    const handleFriendRequestNew = () => fetchNotifications();
+    const handleFriendRequestNew = () => {
+      fetchNotifications();
+      logNotification({ type: 'friend-request', title: 'New friend request', body: 'Someone sent you a friend request.' });
+      toast.success('New friend request!');
+    };
     const handleFriendRequestUpdated = () => fetchNotifications();
-    const handleGroupInviteNew = () => fetchNotifications();
+    const handleGroupInviteNew = () => {
+      fetchNotifications();
+      logNotification({ type: 'group-invite', title: 'New group invite', body: 'You received a private group invite.' });
+    };
     const handleGroupInviteUpdated = () => fetchNotifications();
+    const handleNewMessage = ({ fromUser, content }) => {
+      const preview = content.substring(0, 40) + (content.length > 40 ? '...' : '');
+      logNotification({ type: 'message', title: `Message from ${fromUser}`, body: preview });
+      toast.success(`${fromUser}: ${preview}`);
+      fetchUnreadCount();
+    };
 
     socket.on('friend-request:new', handleFriendRequestNew);
     socket.on('friend-request:accepted', handleFriendRequestUpdated);
@@ -61,6 +101,7 @@ export default function Navbar() {
     socket.on('group-invite:new', handleGroupInviteNew);
     socket.on('group-invite:accepted', handleGroupInviteUpdated);
     socket.on('group-invite:declined', handleGroupInviteUpdated);
+    socket.on('message:new', handleNewMessage);
 
     return () => {
       socket.off('friend-request:new', handleFriendRequestNew);
@@ -69,11 +110,12 @@ export default function Navbar() {
       socket.off('group-invite:new', handleGroupInviteNew);
       socket.off('group-invite:accepted', handleGroupInviteUpdated);
       socket.off('group-invite:declined', handleGroupInviteUpdated);
+      socket.off('message:new', handleNewMessage);
     };
   }, []);
 
   useEffect(() => {
-    if (!trimmedQuery || trimmedQuery.length < 2) {
+    if (!genreFilter && (!trimmedQuery || trimmedQuery.length < 2)) {
       setResults([]);
       setLoading(false);
       return;
@@ -82,7 +124,14 @@ export default function Navbar() {
     const timeoutId = setTimeout(async () => {
       try {
         setLoading(true);
-        const res = await api.get('/users/search', { params: { q: trimmedQuery } });
+        const params = {};
+        if (trimmedQuery) {
+          params.q = trimmedQuery;
+        }
+        if (genreFilter) {
+          params.genre = genreFilter;
+        }
+        const res = await api.get('/users/search', { params });
         setResults(res.data || []);
       } catch {
         setResults([]);
@@ -92,7 +141,7 @@ export default function Navbar() {
     }, 250);
 
     return () => clearTimeout(timeoutId);
-  }, [trimmedQuery]);
+  }, [trimmedQuery, genreFilter]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -155,7 +204,34 @@ export default function Navbar() {
           }}
           className="navbar-search-input"
         />
-        {showResults && (trimmedQuery.length >= 2 || loading) && (
+        <select
+          value={genreFilter}
+          onChange={(e) => setGenreFilter(e.target.value)}
+          style={{
+            padding: '8px 12px',
+            borderRadius: '6px',
+            border: '1px solid rgba(255, 79, 216, 0.35)',
+            background: 'rgba(31, 4, 37, 0.5)',
+            color: '#fff',
+            cursor: 'pointer',
+            fontSize: '14px'
+          }}
+        >
+          <option value="">All Genres</option>
+          <option value="rock">Rock</option>
+          <option value="pop">Pop</option>
+          <option value="hip-hop">Hip-Hop</option>
+          <option value="jazz">Jazz</option>
+          <option value="classical">Classical</option>
+          <option value="electronic">Electronic</option>
+          <option value="country">Country</option>
+          <option value="r&b">R&B</option>
+          <option value="indie">Indie</option>
+          <option value="metal">Metal</option>
+          <option value="folk">Folk</option>
+          <option value="other">Other</option>
+        </select>
+        {showResults && (trimmedQuery.length >= 2 || Boolean(genreFilter) || loading) && (
           <div className="navbar-search-results">
             {loading && <div className="navbar-search-item muted">Searching...</div>}
             {!loading && results.length === 0 && (
@@ -188,6 +264,12 @@ export default function Navbar() {
         <Link to="/discover">Discover</Link>
         <Link to="/concerts">Concerts</Link>
         <Link to="/profile">My Profile</Link>
+        <Link to="/settings">Settings</Link>
+        <Link to="/notifications">History</Link>
+        <Link to="/chat" style={{ position: 'relative' }}>
+          Messages
+          {unreadMessageCount > 0 && <span className="navbar-notification-badge">{unreadMessageCount}</span>}
+        </Link>
 
         <div className="navbar-notifications-wrap" ref={notificationsWrapRef}>
           <button
