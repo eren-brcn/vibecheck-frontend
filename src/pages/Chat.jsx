@@ -33,6 +33,7 @@ const Chat = () => {
   const activeDmRoomId = !activeGroupId
     ? (roomId || (currentUser?._id && friendId ? generateRoomId(currentUser._id, friendId) : null))
     : null;
+  const hasActiveConversation = Boolean(activeGroupId || activeDmRoomId);
 
   useEffect(() => {
     api.get('/auth/me')
@@ -70,7 +71,7 @@ const Chat = () => {
     // 1. Join the room
     socket.emit('join_room', joinedRoom);
 
-    // 2. Fetch history from DB (first page)
+    // 2. Fetch message history from DB (first page)
     setLoadingMessages(true);
     api.get(`/messages/${joinedRoom}?limit=${messagesPerPage}&skip=0`)
       .then(res => {
@@ -202,7 +203,7 @@ const Chat = () => {
       return (
         <Box sx={{ mb: 2 }}>
           <Typography variant="body2" sx={{ color: 'var(--text-dim)' }}>
-            Loading chat partner...
+            Loading conversation details...
           </Typography>
         </Box>
       );
@@ -257,19 +258,30 @@ const Chat = () => {
       <DMSidebar />
       <Stack sx={{ flex: 1, minWidth: 0 }}>
         {renderFriendStatus()}
-        <ChatWindow 
-          messages={messages} 
-          onSendMessage={sendMessage} 
-          onInputChange={handleInputChange} 
-          isTyping={Boolean(typingUserId && typingUserId !== currentUser?._id)}
-          onLoadMore={loadMoreMessages}
-          hasMoreMessages={hasMoreMessages}
-          loadingMessages={loadingMessages}
-          currentUserId={currentUser?._id}
-          onEditMessage={handleEditMessage}
-          onDeleteMessage={handleDeleteMessage}
-          onReactMessage={handleReactMessage}
-        />
+        {hasActiveConversation ? (
+          <ChatWindow 
+            messages={messages} 
+            onSendMessage={sendMessage} 
+            onInputChange={handleInputChange} 
+            isTyping={Boolean(typingUserId && typingUserId !== currentUser?._id)}
+            onLoadMore={loadMoreMessages}
+            hasMoreMessages={hasMoreMessages}
+            loadingMessages={loadingMessages}
+            currentUserId={currentUser?._id}
+            onEditMessage={handleEditMessage}
+            onDeleteMessage={handleDeleteMessage}
+            onReactMessage={handleReactMessage}
+          />
+        ) : (
+          <Box sx={{ p: 4, border: '1px solid var(--border)', borderRadius: 2, background: 'var(--panel)' }}>
+            <Typography variant="h6" sx={{ color: 'var(--text-main)', mb: 1, fontWeight: 700 }}>
+              Pick a conversation
+            </Typography>
+            <Typography sx={{ color: 'var(--text-dim)' }}>
+              Select a friend from the sidebar or open a group chat to start messaging.
+            </Typography>
+          </Box>
+        )}
       </Stack>
     </Stack>
   );

@@ -22,20 +22,6 @@ export default function Navbar() {
 
   const trimmedQuery = useMemo(() => query.trim(), [query]);
 
-  const logNotification = (entry) => {
-    try {
-      const existing = JSON.parse(localStorage.getItem('notificationHistory') || '[]');
-      const next = [{
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        createdAt: new Date().toISOString(),
-        ...entry
-      }, ...existing].slice(0, 100);
-      localStorage.setItem('notificationHistory', JSON.stringify(next));
-    } catch {
-      // Ignore local history write errors.
-    }
-  };
-
   const fetchNotifications = async () => {
     try {
       const res = await api.get('/users/notifications');
@@ -62,35 +48,24 @@ export default function Navbar() {
     // Initialize socket connection
     const socket = initSocket();
 
-    // Get current user ID from token to join notifications room
+    // Join notifications room when a token exists.
     const token = localStorage.getItem('authToken');
     if (token) {
-      try {
-        const decoded = JSON.parse(atob(token.split('.')[1]));
-        const userId = decoded?._id || decoded?.id;
-        if (userId) {
-          joinNotifications();
-        }
-      } catch (err) {
-        console.error('Error decoding token:', err);
-      }
+      joinNotifications();
     }
 
     // Listen for real-time notification events
     const handleFriendRequestNew = () => {
       fetchNotifications();
-      logNotification({ type: 'friend-request', title: 'New friend request', body: 'Someone sent you a friend request.' });
       toast.success('New friend request!');
     };
     const handleFriendRequestUpdated = () => fetchNotifications();
     const handleGroupInviteNew = () => {
       fetchNotifications();
-      logNotification({ type: 'group-invite', title: 'New group invite', body: 'You received a private group invite.' });
     };
     const handleGroupInviteUpdated = () => fetchNotifications();
     const handleNewMessage = ({ fromUser, content }) => {
       const preview = content.substring(0, 40) + (content.length > 40 ? '...' : '');
-      logNotification({ type: 'message', title: `Message from ${fromUser}`, body: preview });
       toast.success(`${fromUser}: ${preview}`);
       fetchUnreadCount();
     };
@@ -265,7 +240,6 @@ export default function Navbar() {
         <Link to="/concerts">Concerts</Link>
         <Link to="/profile">My Profile</Link>
         <Link to="/settings">Settings</Link>
-        <Link to="/notifications">History</Link>
         <Link to="/chat" style={{ position: 'relative' }}>
           Messages
           {unreadMessageCount > 0 && <span className="navbar-notification-badge">{unreadMessageCount}</span>}

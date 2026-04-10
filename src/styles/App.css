@@ -261,6 +261,30 @@
   -webkit-backdrop-filter: blur(calc(var(--glass-blur) - 2px));
 }
 
+.footer p {
+  margin: 0;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.55rem;
+}
+
+.footer-links a {
+  color: var(--text-main);
+  text-decoration: none;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.footer-links a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
 /* 7. Utility Classes for Cards/Dashboard */
 .group-grid {
   display: grid;

@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { 
   Typography, Button, Grid, Container, Card, CardContent, Box, Avatar,
   Dialog, DialogTitle, DialogContent, TextField, MenuItem, 
-  DialogActions, FormControl, InputLabel, Select, Divider, FormControlLabel, Switch
+  DialogActions, FormControl, InputLabel, Select, Divider, FormControlLabel, Switch, CircularProgress
 } from '@mui/material';
 import api from "../api";
 
@@ -45,6 +45,7 @@ export default function Dashboard() {
   const [newIsPrivate, setNewIsPrivate] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [loadingGroups, setLoadingGroups] = useState(true);
 
   const primaryActionSx = {
     background: 'linear-gradient(90deg, var(--primary), var(--accent))',
@@ -102,9 +103,14 @@ export default function Dashboard() {
   };
 
   const fetchMyGroups = () => {
+    setLoadingGroups(true);
     api.get("/groups/my-groups")
       .then((res) => setMyGroups(res.data))
-      .catch((err) => console.error("Error fetching my groups:", err));
+      .catch((err) => {
+        console.error("Error fetching my groups:", err);
+        toast.error('Could not load your groups.');
+      })
+      .finally(() => setLoadingGroups(false));
   };
 
   // Re-fetch groups whenever currentUserId resolves so organiser checks are accurate
@@ -199,6 +205,22 @@ export default function Dashboard() {
       </Box>
 
       <Box sx={{ px: { xs: 2, md: 4 } }}>
+      {loadingGroups ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress />
+        </Box>
+      ) : myGroups.length === 0 ? (
+        <Card>
+          <CardContent>
+            <Typography variant="h6" sx={{ color: 'var(--text-main)', mb: 1 }}>
+              You have no groups yet
+            </Typography>
+            <Typography sx={{ color: 'var(--text-dim)' }}>
+              Create your first group or visit Discover to join one.
+            </Typography>
+          </CardContent>
+        </Card>
+      ) : (
       <Grid container spacing={3} sx={{ position: 'relative', zIndex: 1 }}>
         {myGroups.map((group) => (
           <Grid size={{ xs: 12, sm: 6, md: 4 }} key={group._id}>
@@ -216,10 +238,6 @@ export default function Dashboard() {
                 </Box>
               )}
               <CardContent sx={{ flexGrow: 1 }}>
-                {/* Temporary debug — remove once buttons are visible */}
-                <Typography variant="caption" sx={{ color: 'grey.500', fontSize: '10px', display: 'block', mb: 0.5 }}>
-                  org: {organiserId} | me: {currentUserId}
-                </Typography>
                 {organiserId === currentUserId && (
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
                     <Button size="small" variant="outlined" onClick={() => handleDelete(group._id)} sx={dangerActionSx}>Delete Group</Button>
@@ -278,6 +296,7 @@ export default function Dashboard() {
           </Grid>
         ))}
       </Grid>
+      )}
       </Box>
 
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">

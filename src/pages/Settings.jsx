@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -14,16 +15,19 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel
+  InputLabel,
+  TextField
 } from '@mui/material';
 import api from '../api';
 
 export default function Settings() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
   const [statusMessage, setStatusMessage] = useState('');
   const [statusType, setStatusType] = useState('success');
   const [saving, setSaving] = useState(false);
+  const [deactivatePassword, setDeactivatePassword] = useState('');
+  const [deactivating, setDeactivating] = useState(false);
   
   const [settings, setSettings] = useState({
     allowFriendRequests: true,
@@ -35,17 +39,21 @@ export default function Settings() {
     theme: 'dark'
   });
 
+  const applyTheme = (themeMode) => {
+    const mode = themeMode === 'light' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = mode;
+    document.documentElement.style.colorScheme = mode;
+    localStorage.setItem('vibecheckTheme', mode);
+    window.dispatchEvent(new CustomEvent('theme:changed', { detail: { theme: mode } }));
+  };
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
         setLoading(true);
-        const [meRes, settingsRes] = await Promise.all([
-          api.get('/auth/me'),
-          api.get('/users/settings')
-        ]);
-
-        setUser(meRes.data);
+        const settingsRes = await api.get('/users/settings');
         setSettings((prev) => ({ ...prev, ...(settingsRes.data || {}) }));
+        applyTheme(settingsRes.data?.theme || 'dark');
       } catch (error) {
         console.error('Error fetching user:', error);
         setStatusType('error');
@@ -71,6 +79,7 @@ export default function Settings() {
       ...prev,
       theme: value
     }));
+    applyTheme(value);
     setStatusMessage('');
   };
 
@@ -80,13 +89,7 @@ export default function Settings() {
       setStatusMessage('');
 
       await api.put('/users/settings', settings);
-      
-      // Apply theme to document
-      if (settings.theme === 'dark') {
-        document.documentElement.style.colorScheme = 'dark';
-      } else {
-        document.documentElement.style.colorScheme = 'light';
-      }
+      applyTheme(settings.theme);
       
       setStatusType('success');
       setStatusMessage('Settings saved successfully.');
@@ -96,6 +99,33 @@ export default function Settings() {
       setStatusMessage('Could not save settings. Please try again.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeactivateAccount = async () => {
+    if (!deactivatePassword) {
+      setStatusType('error');
+      setStatusMessage('Enter your password to deactivate your account.');
+      return;
+    }
+
+    const confirmed = window.confirm('Deactivate your account? You will be logged out immediately.');
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setDeactivating(true);
+      setStatusMessage('');
+      await api.post('/auth/deactivate', { password: deactivatePassword });
+      localStorage.removeItem('authToken');
+      navigate('/login');
+    } catch (error) {
+      setStatusType('error');
+      setStatusMessage(error.response?.data?.message || 'Could not deactivate account. Please try again.');
+    } finally {
+      setDeactivating(false);
+      setDeactivatePassword('');
     }
   };
 
@@ -109,6 +139,37 @@ export default function Settings() {
 
   return (
     <Box sx={{ p: 3, maxWidth: 600, mx: 'auto' }}>
+      <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+        <Button
+          variant="outlined"
+          onClick={() => navigate('/profile')}
+          sx={{
+            flex: 1,
+            borderColor: 'var(--border)',
+            color: 'var(--text-main)',
+            '&:hover': {
+              borderColor: 'var(--accent)',
+              backgroundColor: 'rgba(155, 92, 255, 0.12)'
+            }
+          }}
+        >
+          Profile
+        </Button>
+        <Button
+          variant="contained"
+          sx={{
+            flex: 1,
+            background: 'linear-gradient(90deg, var(--primary), var(--accent))',
+            color: '#fff',
+            '&:hover': {
+              background: 'linear-gradient(90deg, var(--primary-strong), var(--accent))'
+            }
+          }}
+        >
+          Settings
+        </Button>
+      </Stack>
+
       <Card sx={{ background: 'var(--panel)', border: '1px solid var(--border)' }}>
         <CardContent>
           <Typography variant="h5" sx={{ fontWeight: 700, mb: 3 }}>
@@ -225,9 +286,46 @@ export default function Settings() {
                   onChange={(e) => handleThemeChange(e.target.value)}
                 >
                   <MenuItem value="dark">Dark</MenuItem>
-                  <MenuItem value="light">Light (Coming soon)</MenuItem>
+                  <MenuItem value="light">Light</MenuItem>
                 </Select>
               </FormControl>
+            </Box>
+
+            <Divider />
+
+            {/* Account */}
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                Account
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'var(--text-dim)', mb: 1.5 }}>
+                Deactivating your account will disable access until reactivation support is added.
+              </Typography>
+              <Stack spacing={1.2}>
+                <TextField
+                  type="password"
+                  label="Confirm password"
+                  value={deactivatePassword}
+                  onChange={(e) => setDeactivatePassword(e.target.value)}
+                  fullWidth
+                />
+                <Button
+                  variant="outlined"
+                  onClick={handleDeactivateAccount}
+                  disabled={deactivating}
+                  sx={{
+                    color: '#ffb3cc',
+                    borderColor: 'rgba(255, 79, 216, 0.45)',
+                    '&:hover': {
+                      borderColor: '#ff4fd8',
+                      backgroundColor: 'rgba(255, 79, 216, 0.14)',
+                      boxShadow: '0 0 0 1px rgba(255, 79, 216, 0.3), 0 8px 20px rgba(122, 46, 255, 0.28)'
+                    }
+                  }}
+                >
+                  {deactivating ? 'Deactivating...' : 'Deactivate Account'}
+                </Button>
+              </Stack>
             </Box>
 
             <Divider />

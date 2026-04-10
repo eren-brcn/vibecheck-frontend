@@ -12,7 +12,9 @@ import Profile from './pages/Profile';
 import Chat from './pages/Chat';
 import UserProfile from './pages/UserProfile';
 import Settings from './pages/Settings';
-import NotificationHistory from './pages/NotificationHistory';
+import About from './pages/About';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 function App() {
   return (
     <>
@@ -29,9 +31,12 @@ function App() {
         <Route path="concerts" element={<Concerts />} />
         <Route path="profile" element={<Profile />} />
         <Route path="settings" element={<Settings />} />
-        <Route path="notifications" element={<NotificationHistory />} />
+        <Route path="about" element={<About />} />
+        <Route path="terms" element={<Terms />} />
+        <Route path="privacy" element={<Privacy />} />
         <Route path="users/:userId" element={<UserProfile />} />
         <Route path="group-details/:groupId" element={<GroupDetails />} />
+        <Route path="chat" element={<Chat />} />
         <Route path="chat/:roomId" element={<Chat />} />
         <Route path="chat/group/:groupId" element={<Chat />} />
         <Route path="chat/dm/:friendId" element={<Chat />} />

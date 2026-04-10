@@ -15,6 +15,21 @@
   --glass-blur: 14px;
 }
 
+:root[data-theme='light'] {
+  --primary: #d81b60;
+  --primary-strong: #b21750;
+  --accent: #6c2bd9;
+  --bg-main: #f8f5fb;
+  --bg-soft: #efe7f8;
+  --panel: #ffffff;
+  --panel-soft: #f6f0fd;
+  --text-main: #2a1636;
+  --text-dim: #634b74;
+  --border: rgba(108, 43, 217, 0.22);
+  --glass-bg: rgba(255, 255, 255, 0.78);
+  --glass-bg-strong: rgba(255, 255, 255, 0.9);
+}
+
 body {
   background:
     radial-gradient(circle at 12% 6%, rgba(255, 46, 168, 0.28) 0%, transparent 34%),

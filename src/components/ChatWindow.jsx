@@ -40,6 +40,22 @@ const ChatWindow = ({
   return (
     <Box sx={{ p: 2, background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 2 }}>
       <List sx={{ height: '70vh', overflowY: 'auto', borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.02)' }}>
+        {loadingMessages && messages.length === 0 && (
+          <ListItem sx={{ justifyContent: 'center', py: 5 }}>
+            <Typography variant="body2" sx={{ color: 'var(--text-dim)' }}>
+              Loading conversation...
+            </Typography>
+          </ListItem>
+        )}
+
+        {!loadingMessages && messages.length === 0 && (
+          <ListItem sx={{ justifyContent: 'center', py: 5 }}>
+            <Typography variant="body2" sx={{ color: 'var(--text-dim)' }}>
+              No messages yet. Start the conversation.
+            </Typography>
+          </ListItem>
+        )}
+
         {hasMoreMessages && (
           <ListItem sx={{ justifyContent: 'center', pb: 2 }}>
             <Button
@@ -140,6 +156,7 @@ const ChatWindow = ({
         <TextField
           fullWidth
           value={text}
+          placeholder="Write a message"
           onChange={handleTextChange}
           onKeyDown={handleKeyDown}
           sx={{

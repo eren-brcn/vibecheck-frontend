@@ -505,6 +505,27 @@ export default function Profile() {
 
   return (
     <Box sx={{ p: 3, maxWidth: 500, mx: 'auto' }}>
+      <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+        <Button variant="contained" sx={{ ...primaryActionSx, flex: 1 }}>
+          Profile
+        </Button>
+        <Button
+          variant="outlined"
+          onClick={() => navigate('/settings')}
+          sx={{
+            flex: 1,
+            borderColor: 'var(--border)',
+            color: 'var(--text-main)',
+            '&:hover': {
+              borderColor: 'var(--accent)',
+              backgroundColor: 'rgba(155, 92, 255, 0.12)'
+            }
+          }}
+        >
+          Settings
+        </Button>
+      </Stack>
+
       <Card sx={{ background: 'var(--panel)', border: '1px solid var(--border)' }}>
         <CardContent sx={{ textAlign: 'center' }}>
           <Box

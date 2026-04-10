@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, Typography, Button, Grid, Container, Box, TextField, Alert, Stack } from '@mui/material';
+import { Card, CardContent, Typography, Button, Grid, Container, Box, TextField, Alert, Stack, CircularProgress } from '@mui/material';
 import toast from 'react-hot-toast';
 import api from "../api";
 
@@ -13,11 +13,19 @@ export default function Discover() {
   const [joiningInvite, setJoiningInvite] = useState(false);
   const [inviteMessage, setInviteMessage] = useState('');
   const [inviteError, setInviteError] = useState('');
+  const [loadingGroups, setLoadingGroups] = useState(true);
+  const [groupsError, setGroupsError] = useState('');
 
   const fetchGroups = () => {
+    setLoadingGroups(true);
+    setGroupsError('');
     api.get("/groups")
       .then((res) => setAllGroups(res.data))
-      .catch((err) => console.error("Error fetching groups for discovery:", err));
+      .catch((err) => {
+        console.error("Error fetching groups for discovery:", err);
+        setGroupsError('Could not load groups right now. Please refresh and try again.');
+      })
+      .finally(() => setLoadingGroups(false));
   };
 
   useEffect(() => {
@@ -131,6 +139,30 @@ export default function Discover() {
         {inviteError && <Alert sx={{ mt: 1.5 }} severity="error">{inviteError}</Alert>}
       </Box>
 
+      {groupsError && (
+        <Box sx={{ px: { xs: 2, md: 4 }, mb: 2, position: 'relative', zIndex: 1 }}>
+          <Alert severity="error">{groupsError}</Alert>
+        </Box>
+      )}
+
+      {loadingGroups ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8, position: 'relative', zIndex: 1 }}>
+          <CircularProgress />
+        </Box>
+      ) : allGroups.length === 0 ? (
+        <Box sx={{ px: { xs: 2, md: 4 }, position: 'relative', zIndex: 1 }}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" sx={{ color: 'var(--text-main)', mb: 1 }}>
+                No groups available yet
+              </Typography>
+              <Typography sx={{ color: 'var(--text-dim)' }}>
+                Check back soon or create a new group from your dashboard.
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
+      ) : (
       <Grid container spacing={3} sx={{ position: 'relative', zIndex: 1, px: { xs: 2, md: 4 } }}>
         {allGroups.map((group) => (
           <Grid size={{ xs: 12, sm: 6, md: 4 }} key={group._id}>
@@ -238,6 +270,7 @@ export default function Discover() {
           </Grid>
         ))}
       </Grid>
+      )}
     </Container>
   );
 }
