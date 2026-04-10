@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -122,6 +122,8 @@ const formatLastSeen = (timestamp) => {
 
 export default function Profile() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const friendsRef = useRef(null);
   const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     username: '',
@@ -207,6 +209,12 @@ export default function Profile() {
 
     fetchUser();
   }, [loadFriends]);
+
+  useEffect(() => {
+    if (location.state?.scrollToFriends && friendsRef.current) {
+      setTimeout(() => friendsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const socket = initSocket();
@@ -681,7 +689,7 @@ export default function Profile() {
                   </>
                 )}
 
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, mt: 2.5 }}>Friends</Typography>
+                <Typography ref={friendsRef} variant="subtitle1" sx={{ fontWeight: 700, mt: 2.5 }}>Friends</Typography>
                 {friends.length === 0 ? (
                   <Typography variant="body2" color="text.secondary">No friends yet.</Typography>
                 ) : (

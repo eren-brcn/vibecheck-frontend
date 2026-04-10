@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import toast from 'react-hot-toast';
 import api from '../../api';
@@ -7,6 +7,7 @@ import { initSocket, joinNotifications } from '../../socket';
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -16,9 +17,12 @@ export default function Navbar() {
   const [processingAction, setProcessingAction] = useState('');
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const [genreFilter, setGenreFilter] = useState('');
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const searchWrapRef = useRef(null);
   const notificationsWrapRef = useRef(null);
+  const userMenuWrapRef = useRef(null);
 
   const trimmedQuery = useMemo(() => query.trim(), [query]);
 
@@ -41,9 +45,10 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    // Fetch initial notifications and unread count
+    // Fetch initial notifications, unread count, and current user
     fetchNotifications();
     fetchUnreadCount();
+    api.get('/auth/me').then((res) => setCurrentUser(res.data)).catch(() => {});
 
     // Initialize socket connection
     const socket = initSocket();
@@ -127,6 +132,9 @@ export default function Navbar() {
       if (notificationsWrapRef.current && !notificationsWrapRef.current.contains(event.target)) {
         setShowNotifications(false);
       }
+      if (userMenuWrapRef.current && !userMenuWrapRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -182,15 +190,7 @@ export default function Navbar() {
         <select
           value={genreFilter}
           onChange={(e) => setGenreFilter(e.target.value)}
-          style={{
-            padding: '8px 12px',
-            borderRadius: '6px',
-            border: '1px solid rgba(255, 79, 216, 0.35)',
-            background: 'rgba(31, 4, 37, 0.5)',
-            color: '#fff',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}
+          className="navbar-genre-select"
         >
           <option value="">All Genres</option>
           <option value="rock">Rock</option>
@@ -235,15 +235,44 @@ export default function Navbar() {
       </div>
 
       <div className="nav-links">
-        <Link to="/dashboard">Dashboard</Link>
-        <Link to="/discover">Discover</Link>
-        <Link to="/concerts">Concerts</Link>
-        <Link to="/profile">My Profile</Link>
-        <Link to="/settings">Settings</Link>
-        <Link to="/chat" style={{ position: 'relative' }}>
-          Messages
-          {unreadMessageCount > 0 && <span className="navbar-notification-badge">{unreadMessageCount}</span>}
-        </Link>
+        <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'nav-active' : ''}>Dashboard</Link>
+        <Link to="/discover" className={location.pathname === '/discover' ? 'nav-active' : ''}>Discover</Link>
+        <Link to="/concerts" className={location.pathname === '/concerts' ? 'nav-active' : ''}>Concerts</Link>
+        <Link to="/settings" className={location.pathname === '/settings' ? 'nav-active' : ''}>Settings</Link>
+
+        <span className="navbar-divider" />
+
+        <div className="navbar-user-menu-wrap" ref={userMenuWrapRef}>
+          <button
+            className="navbar-avatar-btn"
+            onClick={() => setShowUserMenu((prev) => !prev)}
+            aria-label="User menu"
+          >
+            {currentUser?.profilePicture ? (
+              <img src={currentUser.profilePicture} alt="avatar" className="navbar-avatar-img" />
+            ) : (
+              <div className="navbar-avatar-fallback">
+                {currentUser?.username?.[0]?.toUpperCase() || '?'}
+              </div>
+            )}
+            {unreadMessageCount > 0 && <span className="navbar-notification-badge">{unreadMessageCount}</span>}
+          </button>
+
+          {showUserMenu && (
+            <div className="navbar-user-menu">
+              <button className="navbar-user-menu-item" onClick={() => { setShowUserMenu(false); navigate('/profile'); }}>
+                Profile
+              </button>
+              <button className="navbar-user-menu-item" onClick={() => { setShowUserMenu(false); navigate('/chat'); }}>
+                Messages
+                {unreadMessageCount > 0 && <span className="navbar-user-menu-badge">{unreadMessageCount}</span>}
+              </button>
+              <button className="navbar-user-menu-item" onClick={() => { setShowUserMenu(false); navigate('/profile', { state: { scrollToFriends: true } }); }}>
+                Friend List
+              </button>
+            </div>
+          )}
+        </div>
 
         <div className="navbar-notifications-wrap" ref={notificationsWrapRef}>
           <button
